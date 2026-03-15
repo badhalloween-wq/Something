@@ -1,0 +1,218 @@
+
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="เช็คชื่อนักเรียน">
+
+<link rel="apple-touch-icon" href="icon.png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ระบบเช็คชื่อนักเรียน</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+body{
+font-family:'Sarabun',sans-serif;
+background:#f1f5f9;
+margin:0;
+}
+
+header{
+background:#1d4ed8;
+color:white;
+padding:16px;
+font-size:18px;
+font-weight:700;
+text-align:center;
+}
+
+.container{
+max-width:600px;
+margin:auto;
+padding:16px;
+}
+
+.top{
+display:flex;
+gap:10px;
+margin-bottom:12px;
+}
+
+.student{
+display:flex;
+justify-content:space-between;
+align-items:center;
+background:white;
+padding:10px;
+border-radius:10px;
+margin-bottom:8px;
+box-shadow:0 1px 3px rgba(0,0,0,0.1);
+}
+
+.name{
+font-weight:600;
+font-size:14px;
+}
+
+button{
+border:none;
+border-radius:6px;
+padding:6px 8px;
+font-size:12px;
+cursor:pointer;
+}
+
+.present{background:#22c55e;color:white;}
+.absent{background:#ef4444;color:white;}
+.late{background:#f59e0b;color:white;}
+.leave{background:#8b5cf6;color:white;}
+
+.stats{
+background:white;
+padding:10px;
+border-radius:10px;
+margin-bottom:12px;
+font-size:14px;
+text-align:center;
+}
+
+</style>
+</head>
+
+<body>
+
+<header>📋 ระบบเช็คชื่อนักเรียน</header>
+
+<div class="container">
+
+<div class="top">
+<input id="date" type="date">
+</div>
+
+<div class="stats" id="stats"></div>
+
+<div id="students"></div>
+
+</div>
+
+<script>
+
+const students=[
+{ id:1,name:"กนกวรรณ สุขใจ"},
+{ id:2,name:"กิตติพงษ์ มั่นคง"},
+{ id:3,name:"จิราพร วงศ์สวัสดิ์"},
+{ id:4,name:"ชนาภา พึ่งบุญ"},
+{ id:5,name:"ณัฐวุฒิ ทองดี"},
+{ id:6,name:"ดลพร รุ่งเรือง"},
+{ id:7,name:"ธนภัทร สว่างใจ"},
+{ id:8,name:"นภาพร จันทร์งาม"},
+{ id:9,name:"ปณิธาน ใจดี"},
+{ id:10,name:"พรทิพย์ เพชรงาม"},
+{ id:11,name:"ภูมิพัฒน์ ศรีสุข"},
+{ id:12,name:"มณีรัตน์ กล้าหาญ"},
+{ id:13,name:"รัตนาภรณ์ สดใส"},
+{ id:14,name:"วรินทร แสงทอง"},
+{ id:15,name:"ศิริพร มีสุข"}
+]
+
+const dateInput=document.getElementById("date")
+
+function getKey(){
+if(!dateInput.value) return "attendance_default"
+return "attendance_"+dateInput.value
+}
+
+function loadData(){
+return JSON.parse(localStorage.getItem(getKey())||"{}")
+}
+
+function saveData(data){
+localStorage.setItem(getKey(),JSON.stringify(data))
+}
+
+function mark(id,status){
+
+let data=loadData()
+
+data[id]=status
+
+saveData(data)
+
+render()
+
+}
+
+function render(){
+
+let data=loadData()
+
+let html=""
+
+students.forEach(s=>{
+
+html+=`
+<div class="student">
+
+<div class="name">${s.name}</div>
+
+<div>
+
+<button class="present" onclick="mark(${s.id},'present')">มา</button>
+
+<button class="absent" onclick="mark(${s.id},'absent')">ขาด</button>
+
+<button class="late" onclick="mark(${s.id},'late')">สาย</button>
+
+<button class="leave" onclick="mark(${s.id},'leave')">ลา</button>
+
+</div>
+
+</div>
+`
+
+})
+
+document.getElementById("students").innerHTML=html
+
+updateStats()
+
+}
+
+function updateStats(){
+
+let data=loadData()
+
+let present=0
+let absent=0
+let late=0
+let leave=0
+
+Object.values(data).forEach(v=>{
+
+if(v==="present")present++
+if(v==="absent")absent++
+if(v==="late")late++
+if(v==="leave")leave++
+
+})
+
+document.getElementById("stats").innerHTML=
+`มา ${present} | ขาด ${absent} | สาย ${late} | ลา ${leave}`
+
+}
+
+dateInput.value=new Date().toISOString().split("T")[0]
+
+dateInput.addEventListener("change",render)
+
+render()
+
+</script>
+
+</body>
+</html>
