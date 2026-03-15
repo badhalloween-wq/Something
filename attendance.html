@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>ระบบเช็คชื่อนักเรียน</title>
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+<style>
+
+body{
+font-family:sans-serif;
+background:#f1f5f9;
+margin:0;
+}
+
+header{
+background:#2563eb;
+color:white;
+padding:14px;
+font-weight:bold;
+font-size:18px;
+text-align:center;
+}
+
+.container{
+max-width:700px;
+margin:auto;
+padding:15px;
+}
+
+.top{
+display:flex;
+gap:8px;
+margin-bottom:10px;
+}
+
+input{
+padding:6px;
+}
+
+button{
+border:none;
+border-radius:6px;
+padding:6px 10px;
+cursor:pointer;
+}
+
+.student{
+display:flex;
+justify-content:space-between;
+align-items:center;
+background:white;
+padding:10px;
+border-radius:8px;
+margin-bottom:6px;
+}
+
+.present{background:#22c55e;color:white;}
+.absent{background:#ef4444;color:white;}
+.late{background:#f59e0b;color:white;}
+.leave{background:#8b5cf6;color:white;}
+
+.delete{background:#444;color:white}
+
+.stats{
+background:white;
+padding:10px;
+border-radius:8px;
+margin-bottom:10px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>📋 ระบบเช็คชื่อนักเรียน</header>
+
+<div class="container">
+
+<div class="top">
+<input id="newName" placeholder="เพิ่มชื่อนักเรียน">
+<button onclick="addStudent()">เพิ่ม</button>
+<button onclick="exportCSV()">Export</button>
+</div>
+
+<div class="stats" id="stats"></div>
+
+<div id="students"></div>
+
+</div>
+
+<script>
+
+let students=JSON.parse(localStorage.getItem("students")||"[]")
+
+let attendance=JSON.parse(localStorage.getItem("attendance")||"{}")
+
+function save(){
+
+localStorage.setItem("students",JSON.stringify(students))
+localStorage.setItem("attendance",JSON.stringify(attendance))
+
+}
+
+function addStudent(){
+
+let name=document.getElementById("newName").value
+
+if(!name)return
+
+students.push({
+id:Date.now(),
+name:name
+})
+
+document.getElementById("newName").value=""
+
+save()
+render()
+
+}
+
+function removeStudent(id){
+
+students=students.filter(s=>s.id!==id)
+
+delete attendance[id]
+
+save()
+render()
+
+}
+
+function mark(id,status){
+
+attendance[id]=status
+
+save()
+render()
+
+}
+
+function render(){
+
+let html=""
+
+students.forEach(s=>{
+
+let st=attendance[s.id]||""
+
+html+=`
+
+<div class="student">
+
+<div>${s.name}</div>
+
+<div>
+
+<button class="present" onclick="mark(${s.id},'present')">มา</button>
+
+<button class="absent" onclick="mark(${s.id},'absent')">ขาด</button>
+
+<button class="late" onclick="mark(${s.id},'late')">สาย</button>
+
+<button class="leave" onclick="mark(${s.id},'leave')">ลา</button>
+
+<button class="delete" onclick="removeStudent(${s.id})">ลบ</button>
+
+</div>
+
+</div>
+
+`
+
+})
+
+document.getElementById("students").innerHTML=html
+
+updateStats()
+
+}
+
+function updateStats(){
+
+let present=0
+let absent=0
+let late=0
+let leave=0
+
+Object.values(attendance).forEach(v=>{
+
+if(v==="present")present++
+if(v==="absent")absent++
+if(v==="late")late++
+if(v==="leave")leave++
+
+})
+
+document.getElementById("stats").innerHTML=
+
+`มา ${present} | ขาด ${absent} | สาย ${late} | ลา ${leave}`
+
+}
+
+function exportCSV(){
+
+let csv="ชื่อ,สถานะ\n"
+
+students.forEach(s=>{
+
+let st=attendance[s.id]||""
+
+csv+=`${s.name},${st}\n`
+
+})
+
+let blob=new Blob([csv])
+
+let a=document.createElement("a")
+
+a.href=URL.createObjectURL(blob)
+
+a.download="attendance.csv"
+
+a.click()
+
+}
+
+render()
+
+</script>
+
+</body>
+</html>
